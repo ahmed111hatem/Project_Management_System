@@ -1,5 +1,4 @@
 package org.example;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -51,7 +50,7 @@ public class LoginScreen extends JFrame {
         add(panel);
 
         // Login Action
-        loginBtn.addActionListener(_ -> {
+        loginBtn.addActionListener(e -> {
             String role = roleField.getText().toLowerCase();
             String password = new String(pass.getPassword());
 
@@ -62,6 +61,7 @@ public class LoginScreen extends JFrame {
                 new LeaderDashboard();
 
             } else if (role.contains("pm") && password.equals("pm123")) {
+                dispose();
                 new PMDashboard();
 
             } else if (role.contains("admin") && password.equals("admin123")) {

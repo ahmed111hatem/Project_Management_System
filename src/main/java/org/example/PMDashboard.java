@@ -22,15 +22,12 @@ public class PMDashboard extends JFrame {
         add(report);
         add(Logout);
 
-        progress.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Project Progress: 60%");
-        });
+//        Lambada Func
+        progress.addActionListener(_ -> JOptionPane.showMessageDialog(this, "Project Progress: 60%"));
 
-        report.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Report sent to Team Leader");
-        });
+        report.addActionListener(_ -> JOptionPane.showMessageDialog(this, "Report sent to Team Leader"));
 
-        Logout.addActionListener(e -> {
+        Logout.addActionListener(_ -> {
 //            new LoginScreen();
 //            SwingUtilities.invokeLater(() -> new LoginScreen());
             SwingUtilities.invokeLater(LoginScreen::new);
