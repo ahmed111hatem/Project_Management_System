@@ -95,7 +95,7 @@ public class EmployeeDashboard extends JFrame {
             List<String> list = fileHandler.getAllTasks();
             if (list.isEmpty()) return;
             String choice = (String) JOptionPane.showInputDialog(this, "Select Task:", "Complete",
-                    JOptionPane.QUESTION_MESSAGE, null, list.toArray(), list.get(0));
+                    JOptionPane.QUESTION_MESSAGE, null, list.toArray(), list.getFirst());
             if (choice != null) fileHandler.moveTaskToCompleted(choice);
         });
 
