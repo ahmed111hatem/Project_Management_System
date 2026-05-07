@@ -12,6 +12,7 @@ public class ManageFile {
     private final String VACATION_FILE = "Vacations.dat";
     private final String PENALTY_FILE = "Penalties.dat";
     private final String REPORTS_FILE = "Reports.dat";
+    private final String USER_FILE = "Data.dat";
 
     // --- Task Management ---
     public void saveTask(String task) {
@@ -212,5 +213,71 @@ public class ManageFile {
             }
         } catch (IOException e) { e.printStackTrace(); }
         return sb.toString();
+    }
+
+    public String getPMProjectReport() {
+        List<String> pending = getAllTasks();
+        List<String> completed = new ArrayList<>();
+
+        File compFile = new File(COMPLETED_FILE);
+        if (compFile.exists()) {
+            try (DataInputStream in = new DataInputStream(new FileInputStream(compFile))) {
+                while (in.available() > 0) completed.add(in.readUTF());
+            } catch (IOException e) { e.printStackTrace(); }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- PROJECT STATUS BOARD ---\n\n");
+
+        sb.append("[MODE: PENDING]\n");
+        if (pending.isEmpty()) {
+            sb.append(" (No projects in progress)\n");
+        } else {
+            for (String t : pending) sb.append(" • ").append(t).append("\n");
+        }
+
+        sb.append("\n[MODE: FINISHED]\n");
+        if (completed.isEmpty()) {
+            sb.append(" (No projects completed)\n");
+        } else {
+            for (String t : completed) sb.append(" ✓ ").append(t).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public void addUser(String username, String password, String role) {
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(USER_FILE, true))) {
+            out.writeUTF(username);
+            out.writeUTF(password);
+            out.writeUTF(role);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public void updateOrDeleteUser(String targetUser, String newPass, String newRole, boolean isDelete) {
+        List<String> userList = new ArrayList<>();
+        File file = new File(USER_FILE);
+        if (!file.exists()) return;
+
+        // Read all users into a temporary list
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
+            while (in.available() > 0) {
+                String u = in.readUTF();
+                String p = in.readUTF();
+                String r = in.readUTF();
+
+                if (u.equalsIgnoreCase(targetUser)) {
+                    if (isDelete) continue; // Skip adding to list = Delete
+                    userList.add(u); userList.add(newPass); userList.add(newRole); // Add new info = Update
+                } else {
+                    userList.add(u); userList.add(p); userList.add(r);
+                }
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+
+        // Overwrite file with updated list
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(USER_FILE, false))) {
+            for (String s : userList) out.writeUTF(s);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }

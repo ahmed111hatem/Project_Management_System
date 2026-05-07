@@ -50,7 +50,7 @@ public class LoginScreen extends JFrame {
         add(panel);
 
         // Login Action
-        loginBtn.addActionListener(e -> {
+        loginBtn.addActionListener(_ -> {
             String role = roleField.getText().toLowerCase();
             String password = new String(pass.getPassword());
 

@@ -3,19 +3,17 @@ package org.example;
 import javax.swing.*;
 
 public class PMDashboard extends JFrame {
-
-    // 1. Initialize the data handler
     private final ManageFile fileHandler = new ManageFile();
 
     public PMDashboard() {
         setTitle("Project Manager Panel");
-        // 2. Increased height to 400 so the bottom buttons are visible
         setSize(400, 400);
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JButton progress = new JButton("View Progress");
-        progress.setBounds(50, 50, 200, 30);
+        // Renamed button to better reflect its purpose
+        JButton viewProjects = new JButton("View All Projects");
+        viewProjects.setBounds(50, 50, 200, 30);
 
         JButton reportBtn = new JButton("Report to Team Leader");
         reportBtn.setBounds(50, 100, 200, 30);
@@ -23,20 +21,27 @@ public class PMDashboard extends JFrame {
         JButton logout = new JButton("Logout");
         logout.setBounds(50, 150, 200, 30);
 
-        add(progress);
+        add(viewProjects);
         add(reportBtn);
         add(logout);
 
         // --- Action Listeners ---
 
-        // View Dynamic Progress %
-        progress.addActionListener(_ -> {
-            double percent = fileHandler.getCompletionPercentage();
-            JOptionPane.showMessageDialog(this,
-                    String.format("Current Project Progress: %.1f%%", percent));
+        // View Projects grouped by Mode (Pending/Finished)
+        viewProjects.addActionListener(_ -> {
+            String report = fileHandler.getPMProjectReport();
+
+            JTextArea textArea = new JTextArea(report);
+            textArea.setEditable(false);
+            textArea.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
+
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new java.awt.Dimension(350, 300));
+
+            // Displays the grouped text list directly
+            JOptionPane.showMessageDialog(this, scrollPane, "Project Modes", JOptionPane.PLAIN_MESSAGE);
         });
 
-        // Send Report to Team Leader
         reportBtn.addActionListener(_ -> {
             String empName = JOptionPane.showInputDialog(this, "Target Employee Name:");
             if (empName != null && !empName.trim().isEmpty()) {
@@ -48,10 +53,9 @@ public class PMDashboard extends JFrame {
             }
         });
 
-        // Logout
         logout.addActionListener(_ -> {
-            SwingUtilities.invokeLater(LoginScreen::new);
             dispose();
+            SwingUtilities.invokeLater(LoginScreen::new);
         });
 
         setVisible(true);
