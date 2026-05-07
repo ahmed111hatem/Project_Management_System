@@ -22,22 +22,45 @@ public class ManageFile {
 
     public List<String> getAllTasks() {
         List<String> taskList = new ArrayList<>();
-        try (DataInputStream in = new DataInputStream(new FileInputStream(TASKS_FILE))) {
+        File file = new File(TASKS_FILE);
+        if (!file.exists()) return taskList;
+
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             while (in.available() > 0) taskList.add(in.readUTF());
-        } catch (IOException _) { }
+        } catch (IOException e) { e.printStackTrace(); }
         return taskList;
     }
 
     public void moveTaskToCompleted(String task) {
         List<String> remaining = getAllTasks();
         if (remaining.remove(task)) {
+            // Rewrite Tasks.dat without the completed task
             try (DataOutputStream out = new DataOutputStream(new FileOutputStream(TASKS_FILE, false))) {
                 for (String t : remaining) out.writeUTF(t);
-            } catch (IOException _) { }
+            } catch (IOException e) { e.printStackTrace(); }
+
+            // Append to CompletedTasks.dat
             try (DataOutputStream out = new DataOutputStream(new FileOutputStream(COMPLETED_FILE, true))) {
                 out.writeUTF(task);
-            } catch (IOException _) { }
+            } catch (IOException e) { e.printStackTrace(); }
         }
+    }
+
+    // --- Project Progress ---
+    public double getCompletionPercentage() {
+        int pending = getAllTasks().size();
+        int completed = 0;
+        File file = new File(COMPLETED_FILE);
+        if (file.exists()) {
+            try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
+                while (in.available() > 0) {
+                    in.readUTF();
+                    completed++;
+                }
+            } catch (IOException e) { e.printStackTrace(); }
+        }
+        int total = pending + completed;
+        return (total == 0) ? 0 : ((double) completed / total) * 100;
     }
 
     // --- Time & Attendance ---
@@ -52,97 +75,142 @@ public class ManageFile {
     public double getMonthlyHours(String empName) {
         double total = 0;
         Calendar cal = Calendar.getInstance();
-        int month = cal.get(Calendar.MONTH);
-        try (DataInputStream in = new DataInputStream(new FileInputStream(LOGS_FILE))) {
+        int currentMonth = cal.get(Calendar.MONTH);
+        File file = new File(LOGS_FILE);
+        if (!file.exists()) return 0;
+
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             while (in.available() > 0) {
                 String name = in.readUTF();
                 double h = in.readDouble();
                 long time = in.readLong();
                 cal.setTimeInMillis(time);
-                if (name.equalsIgnoreCase(empName) && cal.get(Calendar.MONTH) == month) total += h;
+                if (name.equalsIgnoreCase(empName) && cal.get(Calendar.MONTH) == currentMonth) {
+                    total += h;
+                }
             }
-        } catch (IOException e) { }
+        } catch (IOException e) { e.printStackTrace(); }
         return total;
     }
 
-    // --- Vacations & Reports ---
+    // --- Vacations ---
     public void requestVacation(String emp, String reason) {
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(VACATION_FILE, true))) {
-            out.writeUTF(emp); out.writeUTF(reason); out.writeUTF("Pending");
-        } catch (IOException e) { }
+            out.writeUTF(emp);
+            out.writeUTF(reason);
+            out.writeUTF("Pending");
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     public List<String> getVacationRequests() {
         List<String> list = new ArrayList<>();
-        try (DataInputStream in = new DataInputStream(new FileInputStream(VACATION_FILE))) {
+        File file = new File(VACATION_FILE);
+        if (!file.exists()) return list;
+
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             while (in.available() > 0) {
                 list.add(in.readUTF() + " | Reason: " + in.readUTF() + " | Status: " + in.readUTF());
             }
-        } catch (IOException e) { }
+        } catch (IOException e) { e.printStackTrace(); }
         return list;
     }
 
     public void processVacation(String selectedRequest, String newStatus) {
-        List<String> allData = new ArrayList<>();
-        try (DataInputStream in = new DataInputStream(new FileInputStream(VACATION_FILE))) {
+        List<VacationEntry> allEntries = new ArrayList<>();
+        File file = new File(VACATION_FILE);
+        if (!file.exists()) return;
+
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             while (in.available() > 0) {
                 String emp = in.readUTF();
                 String reason = in.readUTF();
-                String currentStatus = in.readUTF();
+                String status = in.readUTF();
+                String lineIdentifier = emp + " | Reason: " + reason + " | Status: " + status;
 
-                String lineIdentifier = emp + " | Reason: " + reason + " | Status: " + currentStatus;
-
-                // If this matches the one selected in the UI, update the status
                 if (lineIdentifier.equals(selectedRequest)) {
-                    currentStatus = newStatus;
+                    status = newStatus;
                 }
-
-                allData.add(emp);
-                allData.add(reason);
-                allData.add(currentStatus);
+                allEntries.add(new VacationEntry(emp, reason, status));
             }
         } catch (IOException e) { e.printStackTrace(); }
 
-        // Rewrite file with the change
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(VACATION_FILE, false))) {
-            for (String s : allData) {
-                out.writeUTF(s);
+            for (VacationEntry ve : allEntries) {
+                out.writeUTF(ve.emp);
+                out.writeUTF(ve.reason);
+                out.writeUTF(ve.status);
             }
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    public void approveVacation(String selected) {
-        List<String> data = new ArrayList<>();
-        try (DataInputStream in = new DataInputStream(new FileInputStream(VACATION_FILE))) {
-            while (in.available() > 0) {
-                String e = in.readUTF(), r = in.readUTF(), s = in.readUTF();
-                String line = e + " | Reason: " + r + " | Status: " + s;
-                data.add(e); data.add(r); data.add(line.equals(selected) ? "Approved" : s);
-            }
-        } catch (IOException e) { }
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(VACATION_FILE, false))) {
-            for (String s : data) out.writeUTF(s);
-        } catch (IOException e) { }
+    // Inner helper class for processing
+    private static class VacationEntry {
+        String emp, reason, status;
+        VacationEntry(String e, String r, String s) { emp = e; reason = r; status = s; }
     }
 
+    // --- Reports & Penalties ---
     public String getEmployeePenalties(String name) {
-        StringBuilder sb = new StringBuilder("Penalties:\n");
-        try (DataInputStream in = new DataInputStream(new FileInputStream(PENALTY_FILE))) {
+        StringBuilder sb = new StringBuilder("Penalties for " + name + ":\n");
+        File file = new File(PENALTY_FILE);
+        if (!file.exists()) return "No penalties file found.";
+
+        boolean found = false;
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             while (in.available() > 0) {
-                String u = in.readUTF(), r = in.readUTF(); double amt = in.readDouble();
-                if (u.equalsIgnoreCase(name)) sb.append("- ").append(r).append(" (").append(amt).append(")\n");
+                String u = in.readUTF();
+                String r = in.readUTF();
+                double amt = in.readDouble();
+                if (u.equalsIgnoreCase(name)) {
+                    sb.append("- ").append(r).append(" (Deduction: ").append(amt).append(")\n");
+                    found = true;
+                }
             }
-        } catch (IOException e) { return "No penalties found."; }
-        return sb.toString();
+        } catch (IOException e) { e.printStackTrace(); }
+        return found ? sb.toString() : "No penalties found for this employee.";
     }
 
     public String getProjectStatusReport() {
         StringBuilder sb = new StringBuilder("--- Project Status ---\n\n[IN PROGRESS]\n");
-        for (String t : getAllTasks()) sb.append("• ").append(t).append("\n");
+        List<String> tasks = getAllTasks();
+        if (tasks.isEmpty()) sb.append("   (None)\n");
+        else for (String t : tasks) sb.append(" • ").append(t).append("\n");
+
         sb.append("\n[COMPLETED]\n");
-        try (DataInputStream in = new DataInputStream(new FileInputStream(COMPLETED_FILE))) {
-            while (in.available() > 0) sb.append("✓ ").append(in.readUTF()).append("\n");
-        } catch (IOException e) { }
+        File file = new File(COMPLETED_FILE);
+        if (!file.exists()) sb.append("   (None)\n");
+        else {
+            try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
+                while (in.available() > 0) sb.append(" ✓ ").append(in.readUTF()).append("\n");
+            } catch (IOException e) { e.printStackTrace(); }
+        }
+        return sb.toString();
+    }
+
+    public void saveEmployeeReport(String empName, String reportDetails) {
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(REPORTS_FILE, true))) {
+            out.writeUTF(empName);
+            out.writeUTF(reportDetails);
+            out.writeLong(System.currentTimeMillis());
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public String getAllEmployeeReports() {
+        File file = new File(REPORTS_FILE);
+        if (!file.exists()) return "No reports from PM yet.";
+
+        StringBuilder sb = new StringBuilder("--- PM Reports ---\n\n");
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
+            while (in.available() > 0) {
+                String name = in.readUTF();
+                String details = in.readUTF();
+                long date = in.readLong();
+                sb.append("Employee: ").append(name)
+                        .append("\nDate: ").append(new java.util.Date(date))
+                        .append("\nDetails: ").append(details)
+                        .append("\n---------------------------\n");
+            }
+        } catch (IOException e) { e.printStackTrace(); }
         return sb.toString();
     }
 }

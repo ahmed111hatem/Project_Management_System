@@ -61,8 +61,8 @@ public class LoginScreen extends JFrame {
                 new LeaderDashboard();
 
             } else if (role.contains("pm") && password.equals("pm123")) {
-                dispose();
                 new PMDashboard();
+                dispose();
 
             } else if (role.contains("admin") && password.equals("admin123")) {
                 new AdminDashboard();
