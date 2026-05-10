@@ -16,9 +16,11 @@ public class ManageFile {
 
     // --- Task Management ---
     public void saveTask(String task) {
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(TASKS_FILE, true))) {
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(TASKS_FILE, true))) { //In Task.dat
             out.writeUTF(task);
-        } catch (IOException e) { e.printStackTrace(); }
+        }
+        catch (IOException e) { e.printStackTrace();
+        }
     }
 
     public List<String> getAllTasks() {
@@ -28,7 +30,10 @@ public class ManageFile {
 
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             while (in.available() > 0) taskList.add(in.readUTF());
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
         return taskList;
     }
 
@@ -43,25 +48,11 @@ public class ManageFile {
             // Append to CompletedTasks.dat
             try (DataOutputStream out = new DataOutputStream(new FileOutputStream(COMPLETED_FILE, true))) {
                 out.writeUTF(task);
-            } catch (IOException e) { e.printStackTrace(); }
-        }
-    }
+            } catch (IOException e) {
+                e.printStackTrace();
 
-    // --- Project Progress ---
-    public double getCompletionPercentage() {
-        int pending = getAllTasks().size();
-        int completed = 0;
-        File file = new File(COMPLETED_FILE);
-        if (file.exists()) {
-            try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-                while (in.available() > 0) {
-                    in.readUTF();
-                    completed++;
-                }
-            } catch (IOException e) { e.printStackTrace(); }
+            }
         }
-        int total = pending + completed;
-        return (total == 0) ? 0 : ((double) completed / total) * 100;
     }
 
     // --- Time & Attendance ---
