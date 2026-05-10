@@ -10,7 +10,6 @@ public class ManageFile {
     private final String COMPLETED_FILE = "CompletedTasks.dat";
     private final String LOGS_FILE = "WorkLogs.dat";
     private final String VACATION_FILE = "Vacations.dat";
-    private final String PENALTY_FILE = "Penalties.dat";
     private final String REPORTS_FILE = "Reports.dat";
     private final String USER_FILE = "Data.dat";
 
@@ -144,6 +143,7 @@ public class ManageFile {
     // --- Reports & Penalties ---
     public String getEmployeePenalties(String name) {
         StringBuilder sb = new StringBuilder("Penalties for " + name + ":\n");
+        String PENALTY_FILE = "Penalties.dat";
         File file = new File(PENALTY_FILE);
         if (!file.exists()) return "No penalties file found.";
 
@@ -270,5 +270,7 @@ public class ManageFile {
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(USER_FILE, false))) {
             for (String s : userList) out.writeUTF(s);
         } catch (IOException e) { e.printStackTrace(); }
+
+
     }
 }
