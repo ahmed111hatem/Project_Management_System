@@ -1,42 +1,80 @@
 package org.example;
+
 import java.awt.Desktop;
 import java.io.File;
 import javax.swing.JOptionPane;
 import javax.swing.*;
 import java.awt.*;
 
+import static org.example.theme.INPUT_BG;
+import static org.example.theme.ACCENT_GREEN;
+import static org.example.theme.ACCENT_BLUE;
+import static org.example.theme.DARK_BG;
+
 public class LoginScreen extends JFrame {
 
     public LoginScreen() {
         setSize(450, 450); // Increased height to fit the new button
-        setTitle("Corporate System - Access");
+        setTitle("Login System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        this.getContentPane().setBackground(DARK_BG);
 
         // Updated to 6 rows to make room for the Report Button
         JPanel panel = new JPanel(new GridLayout(6, 2, 15, 15));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setOpaque(false); // to fix the color view
+        // font Label
+        Font fieldFont  = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
+        Font btnFont    = new Font(Font.SANS_SERIF, Font.BOLD, 13);
 
-        JTextField nameField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField roleField = new JTextField();
-        JPasswordField passField = new JPasswordField();
+        // 4. Styling Text Fields (Dark background, white text, inner padding)
+        var inputBorder = BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(63, 75, 117), 1, true),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        );
+
+        // Define them cleanly in one line each
+        JTextField nameField  = setupDarkField(new JTextField(), fieldFont, inputBorder);
+        JTextField emailField = setupDarkField(new JTextField(), fieldFont, inputBorder);
+        JTextField roleField  = setupDarkField(new JTextField(), fieldFont, inputBorder);
+        JPasswordField passField = (JPasswordField) setupDarkField(new JPasswordField(), fieldFont, inputBorder);
 
         JButton loginBtn = new JButton("Login");
-
+        loginBtn.setFont(btnFont);
+        loginBtn.setBackground(ACCENT_GREEN);
+        loginBtn.setForeground(Color.black);
+        loginBtn.setFocusPainted(false);
+        loginBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // The New Report Button
         JButton viewReportBtn = new JButton(" View Project Report");
-
+        viewReportBtn.setFont(btnFont);
+        viewReportBtn.setBackground(ACCENT_BLUE);
+        viewReportBtn.setForeground(Color.black);
+        viewReportBtn.setFocusPainted(false);
+        viewReportBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // Add components
-        panel.add(new JLabel("Full Name:"));
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setForeground(Color.WHITE);
+        panel.add(nameLabel);
         panel.add(nameField);
-        panel.add(new JLabel("Gmail:"));
+
+        JLabel emailLabel = new JLabel("Gmail:");
+        emailLabel.setForeground(Color.WHITE);
+        panel.add(emailLabel);
         panel.add(emailField);
-        panel.add(new JLabel("Role:"));
+
+        JLabel RoleLabel = new JLabel("Role:");
+        RoleLabel.setForeground(Color.WHITE);
+        panel.add(RoleLabel);
         panel.add(roleField);
-        panel.add(new JLabel("Password:"));
+
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setForeground(Color.WHITE);
+        panel.add(passLabel);
         panel.add(passField);
 
         // Bottom Row
@@ -46,23 +84,9 @@ public class LoginScreen extends JFrame {
         // --- Logic for the New Button ---
         viewReportBtn.addActionListener(_ -> {
             try {
-                // 1. Specify the file path (Must match the name of the generated PDF)
-                File pdfFile = new File("Project_System_Documentation.pdf");
-
-                if (pdfFile.exists()) {
-                    // 2. Check if the system supports the Desktop API
-                    if (Desktop.isDesktopSupported()) {
-                        // 3. Open the file (this typically opens in the default Browser or PDF viewer)
-                        Desktop.getDesktop().open(pdfFile);
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Desktop utility is not supported on this system.");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "The documentation file was not found.");
-                }
+                Desktop.getDesktop().open(new File("Project_System_Documentation.pdf"));
             } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error opening the report: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Could not open PDF: " + ex.getMessage());
             }
         });
 
@@ -99,5 +123,14 @@ public class LoginScreen extends JFrame {
 
         add(panel);
         setVisible(true);
+    }
+
+    private JTextField setupDarkField(JTextField field, Font font, javax.swing.border.Border border) {
+        field.setFont(font);
+        field.setBackground(INPUT_BG); // Uses the static import directly!
+        field.setForeground(Color.WHITE);
+        field.setCaretColor(Color.WHITE);
+        field.setBorder(border);
+        return field;
     }
 }

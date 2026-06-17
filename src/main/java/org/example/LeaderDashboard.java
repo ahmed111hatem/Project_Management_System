@@ -2,6 +2,7 @@ package org.example;
 
 import javax.swing.*;
 import java.util.List;
+import static org.example.theme.DARK_BG;
 
 public class LeaderDashboard extends JFrame {
     private final ManageFile fileHandler = new ManageFile();
@@ -11,6 +12,8 @@ public class LeaderDashboard extends JFrame {
         setSize(450, 450); // Increased size slightly for better fit
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        this.getContentPane().setBackground(DARK_BG);
 
         // --- Component Definitions ---
         JButton assignTask = new JButton("Assign Task");

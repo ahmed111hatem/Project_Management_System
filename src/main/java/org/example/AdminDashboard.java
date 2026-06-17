@@ -1,6 +1,7 @@
 package org.example;
 
 import javax.swing.*;
+import static org.example.theme.DARK_BG;
 
 public class AdminDashboard extends JFrame {
     // 1. Initialize the data handler
@@ -11,6 +12,8 @@ public class AdminDashboard extends JFrame {
         setSize(450, 400); // Increased size to fit more management buttons
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        this.getContentPane().setBackground(DARK_BG);
 
         // --- Buttons ---
         JButton viewProjects = new JButton("View Project Modes");

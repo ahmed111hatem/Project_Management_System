@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import static org.example.theme.DARK_BG;
 
 public class EmployeeDashboard extends JFrame {
     private final ManageFile fileHandler = new ManageFile();
@@ -17,6 +18,8 @@ public class EmployeeDashboard extends JFrame {
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Centers the window
+
+        this.getContentPane().setBackground(DARK_BG);
 
         // --- All your buttons remain the same ---
         JButton checkIn = new JButton("Check In");

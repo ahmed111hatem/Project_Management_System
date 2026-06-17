@@ -2,6 +2,11 @@ package org.example;
 
 import javax.swing.*;
 
+import static org.example.theme.INPUT_BG;
+import static org.example.theme.ACCENT_GREEN;
+import static org.example.theme.ACCENT_BLUE;
+import static org.example.theme.DARK_BG;
+
 public class PMDashboard extends JFrame {
     private final ManageFile fileHandler = new ManageFile();
 
@@ -10,6 +15,8 @@ public class PMDashboard extends JFrame {
         setSize(400, 400);
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        this.getContentPane().setBackground(DARK_BG);
 
         // Renamed button to better reflect its purpose
         JButton viewProjects = new JButton("View All Projects");
